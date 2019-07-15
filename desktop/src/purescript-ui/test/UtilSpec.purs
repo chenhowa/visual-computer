@@ -149,30 +149,54 @@ spec =
                     let insert = "w"
                     describe "range" do
                         it "at beginning" do 
-                            U.pasteString string 0 1 insert `shouldEqual` SOMETHING
+                            U.pasteString string 0 1 insert `shouldEqual` "wello"
                         it "at middle" do
-                            U.pasteString string 1 2 insert `shouldEqual` SOMETHING
+                            U.pasteString string 1 2 insert `shouldEqual` "hwllo"
                         it "at end" do
-                            U.pasteString string (len - 1) len insert `shouldEqual` SOMETHING
+                            U.pasteString string (len - 1) len insert `shouldEqual` "hellw"
                     describe "single cursor" do
-                        pending "at beginning"
-                        pending "at middle" 
-                        pending "at end"
+                        it "at beginning" do 
+                            U.pasteString string 0 0 insert `shouldEqual` "whello"
+                        it "at middle" do 
+                            U.pasteString string 2 2 insert `shouldEqual` "hewllo"
+                        it "at end" do
+                            U.pasteString string len len insert `shouldEqual` "hellow"
                     describe "invalid indices" do
-                        pending "both indices are invalid"
-                        pending "one index is invalid"
-
+                        describe "both indices are invalid" do 
+                            it "before" do 
+                                U.pasteString string (-2) (-1) insert `shouldEqual` "hello"
+                            it "after" do
+                                U.pasteString string (len + 1) (len + 2) insert `shouldEqual` "hello"
+                        describe "one index is invalid" do
+                            it "before" do
+                                U.pasteString string (-1) 0 insert `shouldEqual` "hello"
+                            it "after" do 
+                                U.pasteString string len (len + 1) insert `shouldEqual` "hello"
         describe "copy logic" do 
             describe "copy text" do
-                describe "range" do 
-                    pending "from middle"
-                    pending "from beginning"
-                    pending "from end"
+                let string = "hello"
+                let len = length string
+                describe "range" do
+                    it "from beginning" do
+                        U.copyString string 0 2 `shouldEqual` "he"
+                    it "from middle" do
+                        U.copyString string 1 3 `shouldEqual` "el"
+                    it "from end" do
+                        U.copyString string (len - 2) (len) `shouldEqual` "lo"
                 describe "single cursor" do 
-                    pending "copying should not work at well"
+                    it "copying should not work at all" do
+                        U.copyString string 2 2 `shouldEqual` ""
                 describe "invalid indices" do
-                    pending "both indices are invalid"
-                    pending "one index is invalid"
+                    describe "both indices are invalid" do
+                        it "before" do
+                            U.copyString string (-2) (-1) `shouldEqual` ""
+                        it "after" do
+                            U.copyString string (len + 1) (len + 2) `shouldEqual` ""
+                    describe "one index is invalid" do
+                        it "before" do
+                            U.copyString string (-2) 0 `shouldEqual` ""
+                        it "after" do
+                            U.copyString string len (len + 2) `shouldEqual` ""
 
         describe "undo/redo logic" do 
             describe "undo" do 

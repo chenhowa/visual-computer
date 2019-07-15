@@ -144,3 +144,30 @@ arrowRightIndex str start end =
     if start /= end 
     then max 0 $ min end $ length str
     else max 0 $ min (end + 1) $ length str
+
+pasteString :: String -> Int -> Int -> String -> String
+pasteString full start end insert = 
+    if (not $ validIndex start full) || (not $ validIndex end full)
+    then full
+    else 
+        if start /= end 
+        then 
+            let before = (splitAt start full).before
+                after = (splitAt end full).after
+            in before <> insert <> after
+        else
+            let before = (splitAt start full).before
+                after = (splitAt start full).after 
+            in  before <> insert <> after
+
+copyString :: String -> Int -> Int -> String
+copyString full start end = 
+    if (not $ validIndex start full) || (not $ validIndex end full)
+    then ""
+    else 
+        if start /= end
+        then take (end - start) $ drop start full 
+        else ""
+
+validIndex :: Int -> String -> Boolean
+validIndex index str = index >= 0 && index <= (length str)
