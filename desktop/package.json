@@ -5,12 +5,14 @@
   "main": "main.js",
   "scripts": {
     "test": "test",
-    "start": "electron ."
+    "start": "electron .",
+    "build": "pulp build ./src/purescript-ui -O --to ./src/purescript-ui/output.js"
   },
   "author": "Howard Chen",
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-    "electron": "^5.0.2"
+    "electron": "^5.0.2",
+    "electron-reload": "^1.4.0"
   }
 }

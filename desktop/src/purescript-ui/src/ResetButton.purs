@@ -6,6 +6,8 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Halogen.HTML.Core as HC
+
 
 -- Is the button clicked or not?
 type State = Int
@@ -19,8 +21,8 @@ data Query a
 data Message
     = Clicked Int
 
-ui :: forall m. H.Component HH.HTML Query Input Message m
-ui =
+component :: forall m. H.Component HH.HTML Query Input Message m
+component =
     H.component 
         { initialState: const initialState
         , render
@@ -35,11 +37,12 @@ initialState = 0
 render :: State -> H.ComponentHTML Query
 render state = 
     let 
-        label = "Reset" <> " " <> show state
+        label = "RESET" <> " " <> show state
     in 
         HH.button
             [ HP.title label
             , HE.onClick (HE.input_ Click ) 
+            , HP.classes $ HC.ClassName <$> ["reset-button-component"]
             ]
             [ HH.text label ]
 

@@ -1,0 +1,22 @@
+
+@import "../bootstrap/scss/bootstrap";
+
+$speed-setting-color: lightblue;
+
+.speed-setting {
+    @extend .col-md-4, .col-sm-4;
+    background-color: $speed-setting-color;
+    height: 50px;
+}
+
+.speed-adjustment-component {
+    @extend .row;
+}
+
+.action-menu-item {
+    @extend .col-md-4, .col-sm-4;
+}
+
+.action-menu-component {
+    @extend .row
+}

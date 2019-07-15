@@ -1,11 +1,13 @@
 module SpeedAdjustment where
   
 import Prelude
+
 import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Halogen.HTML.Core as HC
 
 -- What speed is it set at?
 type State = Speed 
@@ -32,8 +34,8 @@ data Query a
 data Message 
     = SpeedSet Speed
 
-ui :: forall m. H.Component HH.HTML Query Input Message m
-ui =
+component :: forall m. H.Component HH.HTML Query Input Message m
+component =
     H.component 
         { initialState: const initialState
         , render
@@ -48,16 +50,23 @@ ui =
         render :: State -> H.ComponentHTML Query
         render state = 
             let 
-                label = "Adjust" <> " " <> show state
+                title = "Adjust Speed"
             in 
-                HH.button
-                    [ HP.title label
-                    , HE.onClick (HE.input_ SetSlow ) 
+                HH.div
+                    [ HP.classes $ HC.ClassName <$> ["speed-adjustment-component"]]
+                    [ renderSpeedSetting state
+                    , renderSpeedSetting state
+                    , renderSpeedSetting state
                     ]
-                    [ HH.text label ]
 
-        eval :: forall m. Query ~> H.ComponentDSL State Query Message m
+        eval :: forall a. Query ~> H.ComponentDSL State Query Message a
         eval q = case q of
             SetSlow next -> pure next
             SetMedium next -> pure next 
             SetFast next -> pure next
+
+renderSpeedSetting :: State -> H.ComponentHTML Query
+renderSpeedSetting name = 
+    HH.div 
+        [ HP.classes $ HC.ClassName <$> [ "speed-setting" ]]
+        []
