@@ -8,7 +8,7 @@ import Data.Array as Array
 import Data.Foldable (foldr)
 import Data.Function.Uncurried as F
 import Data.Maybe (Maybe(..))
-import Data.String (Pattern(..), length, split, splitAt, lastIndexOf, indexOf)
+import Data.String (Pattern(..), length, split)
 import Data.Tuple as Tuple
 import Effect.Aff (Aff)
 import Halogen as H
@@ -19,11 +19,10 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import TextDisplayLine as TextDisplayLine
 import TextSelection (setSelection, startIndex, endIndex)
-import WhatUtils (classes, constructNewText, isPrintable, backspaceText, deleteText)
 import Web.Event.Event (Event, preventDefault)
-import Web.HTML.Event.EventTypes (offline)
 import Web.UIEvent.KeyboardEvent as KE
 import Web.UIEvent.MouseEvent as ME
+import WhatUtils as U
 
 
 
@@ -73,7 +72,7 @@ component =
         render :: State -> H.ParentHTML Query ChildQuery Slot Aff
         render state = 
             HH.div
-                [ classes [ "text-display-component" ]
+                [ U.classes [ "text-display-component" ]
                 , HP.title "HI"
                 , HH.attr (HH.AttrName "contenteditable") "true"
                 , HE.onKeyDown \e -> Just $ PreventDefault (KE.toEvent e) $ H.action (handleKeyDown e)
@@ -93,10 +92,10 @@ component =
         eval :: Query ~> H.ParentDSL State Query ChildQuery Slot Message Aff
         eval q = case q of 
             KeyDown newChar start end next ->
-                if isPrintable newChar
+                if U.isPrintable newChar
                 then do
                     { text, selectionStart, selectionEnd} <- H.get
-                    let newText = (constructNewText text start end newChar)
+                    let newText = (U.constructNewText text start end newChar)
                     H.liftEffect $ log $ "newText: " <> newText
                     H.put $ 
                         { text: newText
@@ -136,22 +135,12 @@ component =
 
 getNewStateFromNonprintable :: State -> Int -> Int -> String -> State
 getNewStateFromNonprintable state start end nonprintable = case nonprintable of 
-    "ArrowRight" -> 
-        if start == end 
-        then if start < (length state.text)
-            then state { selectionStart = start + 1, selectionEnd = end + 1}
-            else state
-        else state { selectionStart = end, selectionEnd = end }
-    "ArrowLeft" -> 
-        if start == end 
-        then if start > 0
-            then state { selectionStart = start - 1, selectionEnd = end - 1}
-            else state
-        else state { selectionStart = start, selectionEnd = start }
-    "ArrowUp" -> getArrowUpState state start end
-    "ArrowDown" -> getArrowDownState state start end
+    "ArrowRight" -> arrowRightState state start end
+    "ArrowLeft" -> arrowLeftState state start end
+    "ArrowUp" -> arrowUpState state start end
+    "ArrowDown" -> arrowDownState state start end
     "Backspace" ->
-        let newText = backspaceText state.text start end
+        let newText = U.backspaceText state.text start end
         in if start > 0
             then state 
                 { text = newText
@@ -164,7 +153,7 @@ getNewStateFromNonprintable state start end nonprintable = case nonprintable of
                 , selectionEnd = 0
                 }
     "Delete" ->
-        let newText = deleteText state.text start end 
+        let newText = U.deleteText state.text start end 
             newState = state 
                 { text = newText 
                 , selectionStart = start
@@ -175,55 +164,50 @@ getNewStateFromNonprintable state start end nonprintable = case nonprintable of
             else newState
     _ -> state
 
-getArrowUpState :: State -> Int -> Int -> State
-getArrowUpState state start end = 
-    let before = (splitAt start state.text).before
-        maybeLastIndex = lastIndexOf (Pattern "\n") before
-        offset = case maybeLastIndex of 
-            Nothing -> 0
-            Just index -> (length before) - index
-        maybePreviousIndex = case maybeLastIndex of 
-            Nothing -> Just 0
-            Just index -> lastIndexOf (Pattern "\n") (splitAt index before).before 
-        newStart = case maybePreviousIndex of 
-            Nothing -> max (offset - 1) 0
-            Just 0 -> 0
-            Just index -> case maybeLastIndex of 
-                Nothing -> index + offset
-                Just lastIndex -> min lastIndex (index + offset)
+arrowUpState :: State -> Int -> Int -> State
+arrowUpState state start end = 
+    let newStart = U.arrowUpIndex state.text start end
     in 
         state 
             { selectionStart = newStart 
             , selectionEnd = newStart
             }
 
-getArrowDownState :: State -> Int -> Int -> State
-getArrowDownState state start end = 
-    let split = (splitAt end state.text) -- THIS IS WRONG. OFFSET NEEDS TO BE COUNTED FROM START OF LINE, NOT END.
-        after = split.after 
-        before = split.before
-        maybeLastNewlineIndex = lastIndexOf (Pattern "\n") before
-        offset = case maybeLastNewlineIndex of
-            Nothing -> end 
-            Just index -> (length before) - index
-        maybeNextNewlineIndex = indexOf (Pattern "\n") after
-        newEnd = case maybeNextNewlineIndex of 
-            Nothing -> length state.text
-            Just index -> (index + offset)
-
-{-
-        maybeFirstIndex = indexOf (Pattern "\n") after
-        offset = case maybeFirstIndex of 
-            Nothing -> 0
-            Just index -> index 
-        maybeNextIndex = case maybeFirstIndex of 
-            Nothing -> Just $ length state.text
-            Just index -> firstIndexOf (Pattern "\n") (splitAt index after).after 
-        newEnd = case maybeNextIndex of 
-            Nothing -> min offset (length state.text)
-            Just $ length state.text -> length state.text 
-            Just index -> index - offset-}
+arrowDownState :: State -> Int -> Int -> State
+arrowDownState state start end = 
+    let newEnd = U.arrowDownIndex state.text start end
     in state
         { selectionStart = newEnd
         , selectionEnd = newEnd
         }
+
+arrowLeftState :: State -> Int -> Int -> State 
+arrowLeftState state start end = 
+    let newStart = U.arrowLeftIndex state.text start end 
+    in state 
+        { selectionStart = newStart 
+        , selectionEnd = newStart 
+        }
+
+arrowRightState :: State -> Int -> Int -> State 
+arrowRightState state start end = 
+    let newEnd = U.arrowRightIndex state.text start end 
+    in state 
+        { selectionStart = newEnd 
+        , selectionEnd = newEnd
+        }
+
+backspaceState :: State -> Int -> Int -> State 
+backspaceState state start end =
+    let newText = U.backspaceText state.text start end
+    in if start > 0
+        then state 
+            { text = newText
+            , selectionStart = if start == end then start - 1 else start
+            , selectionEnd = if start == end then end - 1 else start
+            }
+        else state
+            { text = newText
+            , selectionStart = 0
+            , selectionEnd = 0
+            }

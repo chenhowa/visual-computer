@@ -78,7 +78,7 @@ exports.startIndex = function startIndex(rootClass) {
     var count = countTextChildren(rootNode, anchorNode, 0).count
 
     var start = count + anchorOffset
-    console.log("start index found was " + start)
+    log("start index found was " + start)
 
     return start
 }
@@ -93,7 +93,7 @@ exports.endIndex = function(rootClass) {
     var count = countTextChildren(rootNode, focusNode, 0).count
 
     var end = count + focusOffset
-    console.log("end index found was " + end)
+    log("end index found was " + end)
 
     return end
 }
@@ -107,7 +107,6 @@ exports.selection = function(unit) {
 exports.setSelection = function(rootClass, startIndex, endIndex) {
     log("selection start: " + startIndex)
     log("selection end: " + endIndex)
-    log("YO")
     var rootNodes = document.getElementsByClassName(rootClass)
     if (rootNodes.length <= 0) {
         throw new Error("setSelection: rootClass " + rootClass + " not found")
@@ -119,11 +118,21 @@ exports.setSelection = function(rootClass, startIndex, endIndex) {
     var range = document.createRange()
 
     var start = getNodeAndOffset(rootNode, rootNode, startIndex, 0)
+    if(start.done) {
+        range.setStart(start.node, start.offset)
+    } else {
+        range.setStart(start.node, Math.abs(startIndex - start.offset))
+    }
 
-    range.setStart(start.node, start.offset)
 
     var end = getNodeAndOffset(rootNode, rootNode, endIndex, 0)
     range.setEnd(end.node, end.offset)
+
+    if(end.done) {
+        range.setStart(end.node, end.offset)
+    } else {
+        range.setStart(end.node, Math.abs(startIndex - end.offset))
+    }
 
     selection.addRange(range)
 
@@ -131,45 +140,56 @@ exports.setSelection = function(rootClass, startIndex, endIndex) {
     
     function getNodeAndOffset(currentNode, previousNode, endIndex, currentIndex) {
         if(currentIndex === endIndex) {
-            return {
+            return logReturn({
                 node: previousNode,
                 offset: Math.abs(currentIndex - endIndex),
                 done: true
-            }
+            })
         }
 
         if(currentNode.nodeType === 3) {
             if(currentNode.length >= Math.abs(currentIndex - endIndex)) {
-                return {
+                return logReturn({
                     offset: Math.abs(currentIndex - endIndex),
                     node: currentNode,
                     done: true
-                }
+                })
             } else {
-                return {
+                return logReturn({
                     offset: currentNode.length,
                     node: currentNode,
                     done: false
-                }
+                })
             }
         }
 
         var indexTrack = currentIndex
         var newPrevious = currentNode
+        var textCount = 0
         for(var i = 0; i < currentNode.childNodes.length; i++) {
             var result = getNodeAndOffset(currentNode.childNodes[i], newPrevious, endIndex, indexTrack);
             if(result.done) {
-                return result
+                return logReturn (result);
             } else {
                 newPrevious = result.node,
                 indexTrack += result.offset
+                textCount += result.offset
             }
         }
 
-        return {
+        //log("composite index of " + indexTrack)
+        //log("text count for this child of " + textCount)
+
+
+        return logReturn ({
             node: newPrevious,
-            offset: indexTrack,
+            offset: textCount,
             done: false
+        })
+
+        function logReturn(thing) {
+            log(thing)
+            return thing
         }
     }
 }
