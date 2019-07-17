@@ -6433,17 +6433,29 @@ var PS = {};
   var Halogen_HTML_Events = $PS["Halogen.HTML.Events"];
   var Halogen_Query_HalogenM = $PS["Halogen.Query.HalogenM"];
   var WhatUtils = $PS["WhatUtils"];                
-  var ResetLine = (function () {
-      function ResetLine(value0, value1) {
+  var ResetText = (function () {
+      function ResetText(value0, value1) {
           this.value0 = value0;
           this.value1 = value1;
       };
-      ResetLine.create = function (value0) {
+      ResetText.create = function (value0) {
           return function (value1) {
-              return new ResetLine(value0, value1);
+              return new ResetText(value0, value1);
           };
       };
-      return ResetLine;
+      return ResetText;
+  })();
+  var ResetNumber = (function () {
+      function ResetNumber(value0, value1) {
+          this.value0 = value0;
+          this.value1 = value1;
+      };
+      ResetNumber.create = function (value0) {
+          return function (value1) {
+              return new ResetNumber(value0, value1);
+          };
+      };
+      return ResetNumber;
   })();
   var HandleInput = (function () {
       function HandleInput(value0, value1) {
@@ -6459,31 +6471,56 @@ var PS = {};
   })();
   var component = (function () {
       var render = function (state) {
-          return Halogen_HTML_Elements.div([ WhatUtils.classes([ "text-display-line-component" ]) ])([ Halogen_HTML_Core.text(state) ]);
+          return Halogen_HTML_Elements.div([ WhatUtils.classes([ "text-display-line-component" ]) ])([ Halogen_HTML_Core.text((function () {
+              var $5 = state.number === 1;
+              if ($5) {
+                  return state.text;
+              };
+              return "\x0a" + state.text;
+          })()) ]);
       };
       var initialize = function (input) {
           return input;
       };
-      var $$eval = function ($copy_q) {
-          var $tco_done = false;
-          var $tco_result;
-          function $tco_loop(q) {
-              if (q instanceof ResetLine) {
-                  $tco_done = true;
-                  return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)(q.value0))(function () {
+      var $$eval = function (q) {
+          if (q instanceof ResetText) {
+              return Control_Bind.bind(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.get(Halogen_Query_HalogenM.monadStateHalogenM))(function (v) {
+                  return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)((function () {
+                      var $8 = {};
+                      for (var $9 in v) {
+                          if ({}.hasOwnProperty.call(v, $9)) {
+                              $8[$9] = v[$9];
+                          };
+                      };
+                      $8.text = q.value0;
+                      return $8;
+                  })()))(function () {
                       return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(q.value1);
                   });
-              };
-              if (q instanceof HandleInput) {
-                  $copy_q = new ResetLine(q.value0, q.value1);
-                  return;
-              };
-              throw new Error("Failed pattern match at TextDisplayLine (line 55, column 18 - line 60, column 42): " + [ q.constructor.name ]);
+              });
           };
-          while (!$tco_done) {
-              $tco_result = $tco_loop($copy_q);
+          if (q instanceof ResetNumber) {
+              return Control_Bind.bind(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.get(Halogen_Query_HalogenM.monadStateHalogenM))(function (v) {
+                  return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)((function () {
+                      var $14 = {};
+                      for (var $15 in v) {
+                          if ({}.hasOwnProperty.call(v, $15)) {
+                              $14[$15] = v[$15];
+                          };
+                      };
+                      $14.number = q.value0;
+                      return $14;
+                  })()))(function () {
+                      return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(q.value1);
+                  });
+              });
           };
-          return $tco_result;
+          if (q instanceof HandleInput) {
+              return Control_Bind.bind(Halogen_Query_HalogenM.bindHalogenM)($$eval(new ResetText(q.value0.text, q.value1)))(function (v) {
+                  return $$eval(new ResetNumber(q.value0.number, q.value1));
+              });
+          };
+          throw new Error("Failed pattern match at TextDisplayLine (line 59, column 18 - line 70, column 53): " + [ q.constructor.name ]);
       };
       return Halogen_Component.component(Halogen_HTML_Core.bifunctorHTML)({
           initialState: initialize,
@@ -6492,7 +6529,8 @@ var PS = {};
           receiver: Halogen_HTML_Events.input(HandleInput.create)
       });
   })();
-  exports["ResetLine"] = ResetLine;
+  exports["ResetText"] = ResetText;
+  exports["ResetNumber"] = ResetNumber;
   exports["HandleInput"] = HandleInput;
   exports["component"] = component;
 })(PS);
@@ -6676,8 +6714,8 @@ var PS = {};
               }
           }
 
-          //console.log("composite index of " + indexTrack)
-          //console.log("text count for this child of " + textCount)
+          //log("composite index of " + indexTrack)
+          //log("text count for this child of " + textCount)
 
 
           return logReturn ({
@@ -6687,7 +6725,7 @@ var PS = {};
           })
 
           function logReturn(thing) {
-              //console.log(thing)
+              log(thing)
               return thing
           }
       }
@@ -6993,11 +7031,14 @@ var PS = {};
       };
       var render = function (state) {
           var renderPair = function (tup) {
-              return Halogen_HTML.slot(Data_Tuple.fst(tup))(TextDisplayLine.component)(Data_Tuple.snd(tup) + "\x0a")(Data_Void.absurd);
+              return Halogen_HTML.slot(LineSlot.create(Data_Tuple.fst(tup)))(TextDisplayLine.component)({
+                  text: Data_Tuple.snd(tup),
+                  number: Data_Tuple.fst(tup)
+              })(Data_Void.absurd);
           };
           var lines = Data_String_Common.split("\x0a")(state.text);
-          var slots = Data_Functor.map(Data_Functor.functorArray)(LineSlot.create)(Data_Array.range(1)(Data_Array.length(lines)));
-          var pairs = Data_Array.zip(slots)(lines);
+          var numbers = Data_Array.range(1)(Data_Array.length(lines));
+          var pairs = Data_Array.zip(numbers)(lines);
           var children = Data_Functor.map(Data_Functor.functorArray)(renderPair)(pairs);
           return Halogen_HTML_Elements.div([ WhatUtils.classes([ "text-display-component" ]), Halogen_HTML_Properties.title("HI"), Halogen_HTML_Properties.attr("contenteditable")("true"), Halogen_HTML_Events.onKeyDown(function (e) {
               return Data_Maybe.Just.create(PreventDefault.create(Web_UIEvent_KeyboardEvent.toEvent(e))(Halogen_Query.action(handleKeyDown(e))));
@@ -7052,7 +7093,7 @@ var PS = {};
                   });
               });
           };
-          throw new Error("Failed pattern match at TextDisplay (line 93, column 18 - line 124, column 26): " + [ q.constructor.name ]);
+          throw new Error("Failed pattern match at TextDisplay (line 92, column 18 - line 123, column 26): " + [ q.constructor.name ]);
       };
       return Halogen_Component.parentComponent(ordTextLineSlot)({
           initialState: Data_Function["const"](initialState),

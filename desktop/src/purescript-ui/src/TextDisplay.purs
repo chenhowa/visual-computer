@@ -83,12 +83,11 @@ component =
                 children
             where 
                 lines = split (Pattern "\n") state.text
-                slots = LineSlot <$> Array.range 1 (Array.length lines)
-                pairs = Array.zip slots lines
+                numbers = Array.range 1 (Array.length lines)
+                pairs :: Array (Tuple.Tuple Int String)
+                pairs = Array.zip numbers lines
                 children = renderPair <$> pairs
-                renderPair tup = HH.slot (Tuple.fst tup) TextDisplayLine.component ( (Tuple.snd tup) <> "\n") absurd
-            -- WEIRD. DO I NEED TO INSERT "\n" ??  and clearly the selection algorithm is wrong here for 
-            -- for some reason.
+                renderPair tup = HH.slot (LineSlot $ Tuple.fst tup) TextDisplayLine.component ({ text: Tuple.snd tup, number: Tuple.fst tup }) absurd
         eval :: Query ~> H.ParentDSL State Query ChildQuery Slot Message Aff
         eval q = case q of 
             KeyDown newChar start end next ->

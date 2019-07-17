@@ -20,11 +20,15 @@ import Web.UIEvent.KeyboardEvent as KE
 import Web.UIEvent.MouseEvent as ME
 
 type State = Line
-type Line = String
-type Input = String
+type Line =
+    { text :: String
+    , number :: Int
+    }
+type Input = Line
 
 data Query a 
-    = ResetLine String a
+    = ResetText String a
+    | ResetNumber Int a
     | HandleInput Input a
 
 type Message = Void
@@ -49,12 +53,18 @@ component =
             HH.div
                 [ classes [ "text-display-line-component" ]
                 ]
-                [ HH.text state
+                [ HH.text (if state.number == 1 then state.text else "\n" <> state.text)
                 ]
         eval :: Query ~> H.ComponentDSL State Query Message Aff
         eval q = case q of 
-            ResetLine str next -> do
-                H.put str 
+            ResetText str next -> do
+                state <- H.get
+                H.put $ state { text = str }
                 pure next
-            HandleInput str next -> do
-                eval $ ResetLine str next 
+            ResetNumber num next -> do
+                state <- H.get 
+                H.put $ state { number = num }
+                pure next
+            HandleInput input next -> do
+                _ <- eval $ ResetText input.text next
+                eval $ ResetNumber input.number next
