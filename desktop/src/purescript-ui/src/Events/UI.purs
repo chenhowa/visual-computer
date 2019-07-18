@@ -1,4 +1,4 @@
-module UI 
+module Events.UI 
     ( onTripleClick
     , target 
     , Target

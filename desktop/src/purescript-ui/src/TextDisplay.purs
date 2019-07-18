@@ -13,6 +13,7 @@ import Data.String (Pattern(..), length, split)
 import Data.Tuple as Tuple
 import Effect as Ef
 import Effect.Aff (Aff)
+import Events.UI as EUI
 import Halogen as H
 import Halogen.HTML (a)
 import Halogen.HTML as HH
@@ -28,8 +29,6 @@ import Web.HTML.Event.EventTypes (offline)
 import Web.UIEvent.KeyboardEvent as KE
 import Web.UIEvent.MouseEvent as ME
 import WhatUtils as U
-
-
 
 
 type State = Program
@@ -50,6 +49,8 @@ data Query a
     | SetSelection a
     | Paste (Ef.Effect String) Int Int a
     | Cut (Maybe DT.DataTransfer) Int Int a
+    | Initialize a
+    | HandleTripleClick (H.SubscribeStatus -> a)
 
 data Message 
     = TextChanged
@@ -63,11 +64,13 @@ type ChildQuery = TextDisplayLine.Query
 
 component :: H.Component HH.HTML Query Input Message Aff 
 component =
-    H.parentComponent 
+    H.lifecycleParentComponent 
         { initialState: const initialState
         , render
         , eval
         , receiver: const Nothing
+        , initializer: Just $ H.action Initialize
+        , finalizer: Nothing
         }
     where 
         initialState :: State
@@ -101,6 +104,14 @@ component =
                 renderPair tup = HH.slot (LineSlot $ Tuple.fst tup) TextDisplayLine.component ({ text: Tuple.snd tup, number: Tuple.fst tup }) absurd
         eval :: Query ~> H.ParentDSL State Query ChildQuery Slot Message Aff
         eval q = case q of 
+            Initialize next -> do
+                H.liftEffect $ log case EUI.target "text-display-component" of 
+                        Just target -> "found target"
+                        Nothing -> "couldn't find target!"
+                case EUI.target "text-display-component" of 
+                        Just target -> H.subscribe $ H.eventSource_ (EUI.onTripleClick target) (H.request HandleTripleClick)
+                        Nothing -> pure unit
+                pure next
             GeneralKeyDown event next ->
                 if isModified event
                 then eval $ handleModifiedKeyDown event $ next
@@ -143,6 +154,8 @@ component =
                 H.put $ cutState state start end
                 H.raise TextChanged
                 pure next
+            HandleTripleClick reply -> do 
+                pure (reply H.Listening)
 
         isModified :: KE.KeyboardEvent -> Boolean 
         isModified event = KE.ctrlKey event || KE.altKey event || KE.metaKey event

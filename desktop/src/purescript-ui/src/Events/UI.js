@@ -12,6 +12,7 @@ exports.onTripleClickImpl = function(node, fn) {
 }
 
 exports.isUndefined = function(val) {
+    console.log('val was ' + val)
     return val === undefined
 }
 
@@ -38,7 +39,7 @@ exports.maybeTarget = function(query) {
 }
 
 exports.unsafeGetDefined = function(val) {
-    if(val === undefined) {
+    if(val !== undefined) {
         return val
     } else {
         throw new Error("tried to get defined value from undefined")
