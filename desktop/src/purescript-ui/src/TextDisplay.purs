@@ -21,15 +21,17 @@ import Halogen.HTML.Core as HC
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import TextDisplayLine as TextDisplayLine
-import TextSelection (setSelection, startIndex, endIndex)
+import TextSelection as TS
 import Web.Clipboard.ClipboardEvent as CE
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.Event.DataTransfer as DT
-import Web.HTML.Event.EventTypes (offline)
 import Web.UIEvent.KeyboardEvent as KE
 import Web.UIEvent.MouseEvent as ME
 import WhatUtils as U
 
+
+componentClass :: String 
+componentClass = "text-display-component"
 
 type State = Program
 type Program =
@@ -51,6 +53,7 @@ data Query a
     | Cut (Maybe DT.DataTransfer) Int Int a
     | Initialize a
     | HandleTripleClick (H.SubscribeStatus -> a)
+    | HandleDoubleClick a
 
 data Message 
     = TextChanged
@@ -83,12 +86,13 @@ component =
         render :: State -> H.ParentHTML Query ChildQuery Slot Aff
         render state = 
             HH.div
-                [ U.classes [ "text-display-component" ]
+                [ U.classes [ componentClass ]
                 , HP.title "HI"
                 , HH.attr (HH.AttrName "contenteditable") "true"
                 , HE.onKeyDown $ HE.input handleGeneralKeyDown
                 , HE.onPaste $ \e -> Just $ PreventDefault (CE.toEvent e) $ H.action (handlePaste e)
                 , HE.onCut $ \e -> Just $ PreventDefault (CE.toEvent e) $ H.action (handleCut e)
+                , HE.onDoubleClick $ HE.input_ HandleDoubleClick
                 --, HE.onKeyDown \e -> Just $ PreventDefault (KE.toEvent e) $ H.action (handleKeyDown e)
                 --, HE.onKeyUp \e -> Just $ PreventDefault (KE.toEvent e) $ H.action (NoOp)
                 --, HE.onClick \e -> Just $ PreventDefault (ME.toEvent e) $ H.action (NoOp)
@@ -105,10 +109,10 @@ component =
         eval :: Query ~> H.ParentDSL State Query ChildQuery Slot Message Aff
         eval q = case q of 
             Initialize next -> do
-                H.liftEffect $ log case EUI.target "text-display-component" of 
+                H.liftEffect $ log case EUI.target componentClass of 
                         Just target -> "found target"
                         Nothing -> "couldn't find target!"
-                case EUI.target "text-display-component" of 
+                case EUI.target componentClass of 
                         Just target -> H.subscribe $ H.eventSource_ (EUI.onTripleClick target) (H.request HandleTripleClick)
                         Nothing -> pure unit
                 pure next
@@ -137,7 +141,9 @@ component =
                 pure next
             SetSelection next -> do
                 {text, selectionStart, selectionEnd} <- H.get
-                let _ = F.runFn3 setSelection "text-display-component" selectionStart selectionEnd
+                H.liftEffect $ log $ "set start: " <> show selectionStart
+                H.liftEffect $ log $ "set end: " <> show selectionEnd
+                let _ = F.runFn3 TS.setSelection componentClass selectionStart selectionEnd
                 pure next
             Paste d start end next -> do
                 pasted <- H.liftEffect d
@@ -154,8 +160,26 @@ component =
                 H.put $ cutState state start end
                 H.raise TextChanged
                 pure next
-            HandleTripleClick reply -> do 
+            HandleTripleClick reply -> do
+                H.liftEffect $ log "RUNNING"
+                let indices = TS.cursorIndices componentClass
+                let start = indices.start
+                let end = indices.end
+                H.liftEffect $ log $ "triple start: " <> show start
+                H.liftEffect $ log $ "triple end: " <> show end
+                state <- H.get 
+                let newState = tripleClickState state start end
+                H.liftEffect $ log $ "triple start 2: " <> show newState.selectionStart
+                H.liftEffect $ log $ "triple end 2: " <> show newState.selectionEnd
+                H.put $ newState
+                H.raise TextChanged
                 pure (reply H.Listening)
+            HandleDoubleClick next -> do 
+                let indices = TS.cursorIndices componentClass 
+                state <- H.get
+                H.put $ doubleClickState state indices.start indices.end
+                H.raise TextChanged
+                pure next 
 
         isModified :: KE.KeyboardEvent -> Boolean 
         isModified event = KE.ctrlKey event || KE.altKey event || KE.metaKey event
@@ -169,8 +193,9 @@ component =
             let
                 key = KE.key event
                 code = KE.code event
-                start = startIndex "text-editor-component"
-                end = endIndex "text-editor-component"
+                indices = TS.cursorIndices componentClass
+                start = indices.start
+                end = indices.end
             in
                 UnmodifiedKeyDown key (min start end) (max start end)
 
@@ -182,15 +207,17 @@ component =
             let d = case CE.clipboardData ce of 
                         Just clipData -> DT.getData textPlain clipData
                         Nothing -> pure ""
-                start = startIndex "text-editor-component"
-                end = endIndex "text-editor-component"
+                indices = TS.cursorIndices componentClass
+                start = indices.start
+                end = indices.end
             in Paste d (min start end) (max start end) 
 
         handleCut :: forall a. CE.ClipboardEvent -> a -> Query a 
         handleCut ce =
             let d = CE.clipboardData ce
-                start = startIndex "text-editor-component"
-                end = endIndex "text-editor-component"
+                indices = TS.cursorIndices componentClass
+                start = indices.start
+                end = indices.end
             in Cut d (min start end) (max start end)
 
 newStateFromPrintable :: State -> Int -> Int -> String -> State
@@ -290,3 +317,21 @@ cutState state start end =
             , selectionEnd: newStart
             }
     in newState
+
+tripleClickState :: State -> Int -> Int -> State 
+tripleClickState state start end =
+    let newStart = start
+        newEnd = min (length state.text) (end + 1)
+    in  state
+          { selectionStart = newStart
+          , selectionEnd = newEnd
+          }
+
+doubleClickState :: State -> Int -> Int -> State 
+doubleClickState state start end = 
+    let newStart = if start /= 0 then start else start
+        newEnd = end
+    in state 
+        { selectionStart = newStart 
+        , selectionEnd = newEnd
+        }

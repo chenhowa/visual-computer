@@ -8239,4 +8239,8 @@ h3 {
   height: 50px;
 }
 
+.text-display-component {
+  white-space: pre;
+}
+
 /*# sourceMappingURL=index.css.map */

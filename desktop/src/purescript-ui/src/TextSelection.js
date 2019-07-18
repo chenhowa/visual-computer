@@ -127,11 +127,10 @@ exports.setSelection = function(rootClass, startIndex, endIndex) {
 
     var end = getNodeAndOffset(rootNode, rootNode, endIndex, 0)
     range.setEnd(end.node, end.offset)
-
     if(end.done) {
-        range.setStart(end.node, end.offset)
+        range.setEnd(end.node, end.offset)
     } else {
-        range.setStart(end.node, Math.abs(startIndex - end.offset))
+        range.setEnd(end.node, Math.abs(startIndex - end.offset))
     }
 
     selection.addRange(range)

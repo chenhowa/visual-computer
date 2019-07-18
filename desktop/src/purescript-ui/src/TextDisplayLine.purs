@@ -13,7 +13,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Core as HC
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import TextSelection (setSelection, startIndex, endIndex)
+import TextSelection as TS
 import WhatUtils (classes, constructNewText, isPrintable, backspaceText, deleteText)
 import Web.Event.Event (Event, preventDefault)
 import Web.UIEvent.KeyboardEvent as KE
@@ -53,7 +53,7 @@ component =
             HH.div
                 [ classes [ "text-display-line-component" ]
                 ]
-                [ HH.text (if state.number == 1 then state.text else "\n" <> state.text)
+                [ HH.text (if state.number == 1 then state.text else "\r" <> state.text)
                 ]
         eval :: Query ~> H.ComponentDSL State Query Message Aff
         eval q = case q of 

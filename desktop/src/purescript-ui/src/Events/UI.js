@@ -1,7 +1,7 @@
 var rxjs = require('rxjs')
 var operators = require('rxjs/operators')
 
-exports.onTripleClickImpl = function(node, fn) {
+exports.onTripleClickImpl = function(node, fun) {
     return function() {
         var clicks = rxjs.fromEvent(node, 'click')
         return clicks
@@ -17,7 +17,7 @@ exports.onTripleClickImpl = function(node, fn) {
             .subscribe(function(event) {
                 console.log('triple click event was working!');
                 console.log(event)
-                fn(event)
+                fun(event)()
             })
     }
     

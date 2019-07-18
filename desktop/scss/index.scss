@@ -20,3 +20,7 @@ $speed-setting-color: lightblue;
 .action-menu-component {
     @extend .row
 }
+
+.text-display-component {
+    white-space: pre;
+}
