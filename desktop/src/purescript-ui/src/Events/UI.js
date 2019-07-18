@@ -1,12 +1,19 @@
 var rxjs = require('rxjs')
+var operators = require('rxjs/operators')
 
 exports.onTripleClickImpl = function(node, fn) {
     return function() {
-        return rxjs.fromEvent(node, 'click').subscribe(function(event) {
-            console.log('triple click event was');
-            console.log(event)
-            fn(event)
-        })
+        var clicks = rxjs.fromEvent(node, 'click')
+        return clicks
+            .pipe(operators.bufferTime(500, rxjs.asyncScheduler))
+            .pipe(operators.filter(function(clicks){
+                return clicks.length > 1
+            }))
+            .subscribe(function(event) {
+                console.log('triple click event was working!');
+                console.log(event)
+                fn(event)
+            })
     }
     
 }
