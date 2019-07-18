@@ -5,9 +5,14 @@ exports.onTripleClickImpl = function(node, fn) {
     return function() {
         var clicks = rxjs.fromEvent(node, 'click')
         return clicks
-            .pipe(operators.bufferTime(500, rxjs.asyncScheduler))
+            .pipe(operators.timeInterval())
+            .pipe(operators.bufferCount(3, 1))
             .pipe(operators.filter(function(clicks){
-                return clicks.length > 1
+                var intervalInMs = 400;
+                return clicks[1].interval < intervalInMs && clicks[2].interval < intervalInMs
+            }))
+            .pipe(operators.map(function(clicks) {
+                return clicks[2].value
             }))
             .subscribe(function(event) {
                 console.log('triple click event was working!');
