@@ -320,7 +320,13 @@ cutState state start end =
 
 tripleClickState :: State -> Int -> Int -> State 
 tripleClickState state start end =
-    let newStart = start
+    let newStart = 
+            if start == 0
+            then start
+            else 
+                case U.charAt start state.text of 
+                    Nothing -> start
+                    Just char -> if char == "\n" then start + 1 else start
         newEnd = min (length state.text) (end + 1)
     in  state
           { selectionStart = newStart
@@ -335,3 +341,4 @@ doubleClickState state start end =
         { selectionStart = newStart 
         , selectionEnd = newEnd
         }
+

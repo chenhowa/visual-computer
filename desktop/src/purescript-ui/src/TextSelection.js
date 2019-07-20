@@ -77,10 +77,10 @@ exports.startIndex = function startIndex(rootClass) {
     log(anchorNode)*/
     var count = countTextChildren(rootNode, anchorNode, 0).count
 
-    var start = count + anchorOffset
+    var start = count + anchorOffset - 1
     log("start index found was " + start)
 
-    return start
+    return Math.max(start, 0)
 }
 
 /*Returns index of the ending character in the selection*/
@@ -92,7 +92,7 @@ exports.endIndex = function(rootClass) {
     var rootNode = getRoot(rootClass, focusNode)
     var count = countTextChildren(rootNode, focusNode, 0).count
 
-    var end = count + focusOffset
+    var end = count + focusOffset - 1
     log("end index found was " + end)
 
     return end
@@ -117,7 +117,7 @@ exports.setSelection = function(rootClass, startIndex, endIndex) {
     selection.removeAllRanges()
     var range = document.createRange()
 
-    var start = getNodeAndOffset(rootNode, rootNode, startIndex, 0)
+    var start = getNodeAndOffset(rootNode, rootNode, startIndex, -1)
     if(start.done) {
         range.setStart(start.node, start.offset)
     } else {
@@ -125,7 +125,7 @@ exports.setSelection = function(rootClass, startIndex, endIndex) {
     }
 
 
-    var end = getNodeAndOffset(rootNode, rootNode, endIndex, 0)
+    var end = getNodeAndOffset(rootNode, rootNode, endIndex, -1)
     range.setEnd(end.node, end.offset)
     if(end.done) {
         range.setEnd(end.node, end.offset)

@@ -53,7 +53,8 @@ component =
             HH.div
                 [ classes [ "text-display-line-component" ]
                 ]
-                [ HH.text (if state.number == 1 then state.text else "\r" <> state.text)
+                [ --HH.text (if state.number == 1 then state.text else "\r" <> state.text)
+                  HH.text $ "\r" <> state.text
                 ]
         eval :: Query ~> H.ComponentDSL State Query Message Aff
         eval q = case q of 

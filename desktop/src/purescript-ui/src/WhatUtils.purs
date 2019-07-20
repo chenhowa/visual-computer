@@ -5,7 +5,7 @@ import Prelude
 import Data.String (splitAt, length, drop, take)
 import Halogen.HTML.Core as HC
 import Halogen.HTML.Properties as HP
-import Data.String (Pattern(..), length, split, splitAt, lastIndexOf, indexOf)
+import Data.String (Pattern(..), length, split, splitAt, lastIndexOf, indexOf, uncons, fromCodePointArray)
 import Data.Maybe (Maybe(..))
 
 
@@ -171,3 +171,10 @@ copyString full start end =
 
 validIndex :: Int -> String -> Boolean
 validIndex index str = index >= 0 && index <= (length str)
+
+charAt :: Int -> String -> Maybe String
+charAt index str = 
+    let after = (splitAt index str).after
+    in case uncons after of 
+            Nothing -> Nothing
+            Just { head, tail } -> Just $ fromCodePointArray [head]
