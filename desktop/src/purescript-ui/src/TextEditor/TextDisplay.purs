@@ -1,4 +1,4 @@
-module TextDisplay where
+module TextEditor.TextDisplay where
   
 import Data.Either
 import Effect.Console
@@ -20,7 +20,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Core as HC
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import TextDisplayLine as TextDisplayLine
+import TextEditor.TextDisplayLine as TextDisplayLine
 import TextSelection as TS
 import Web.Clipboard.ClipboardEvent as CE
 import Web.Event.Event (Event, preventDefault)
@@ -317,7 +317,7 @@ cutState state start end =
             , selectionEnd: newStart
             }
     in newState
-
+ 
 tripleClickState :: State -> Int -> Int -> State 
 tripleClickState state start end =
     let newStart = 

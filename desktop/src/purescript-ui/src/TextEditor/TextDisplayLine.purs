@@ -1,4 +1,4 @@
-module TextDisplayLine where
+module TextEditor.TextDisplayLine where
 
 import Effect.Console
 import Prelude

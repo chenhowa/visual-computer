@@ -16,7 +16,7 @@ import Halogen.HTML (a)
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import TextDisplay as TextDisplay
+import TextEditor.TextDisplay as TextDisplay
 import Web.Event.Event (Event, preventDefault)
 import Web.HTML.HTMLInputElement (selectionStart)
 import Web.HTML.HTMLOptionElement (index)
