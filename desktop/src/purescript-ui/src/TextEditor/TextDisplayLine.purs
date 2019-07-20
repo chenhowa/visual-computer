@@ -3,21 +3,11 @@ module TextEditor.TextDisplayLine where
 import Effect.Console
 import Prelude
 
-import Data.Function.Uncurried as F
-import Data.Maybe (Maybe(..))
-import Data.String (length)
 import Effect.Aff (Aff)
 import Halogen as H
-import Halogen.HTML (a)
 import Halogen.HTML as HH
-import Halogen.HTML.Core as HC
 import Halogen.HTML.Events as HE
-import Halogen.HTML.Properties as HP
-import TextSelection as TS
-import WhatUtils (classes, constructNewText, isPrintable, backspaceText, deleteText)
-import Web.Event.Event (Event, preventDefault)
-import Web.UIEvent.KeyboardEvent as KE
-import Web.UIEvent.MouseEvent as ME
+import WhatUtils (classes)
 
 type State = Line
 type Line =
