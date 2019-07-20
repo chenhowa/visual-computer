@@ -18,8 +18,11 @@ import Halogen.HTML.Core as HC
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Effect.Aff (Aff)
+import Effect.Console (log)
 
 import WhatUtils as U
+import Events.UI as EUI
+import PaneSelectionBar.Events as PSBE
 
 
 
@@ -36,19 +39,24 @@ type Query = MyQuery
 
 data MyQuery a 
     = NoneQuery a
+    | Initialize a
+    | HandleContext String (H.SubscribeStatus -> a)
 
 type Message = MyMessage
 
 data MyMessage 
-    = NoneMessage
+    = ShowTextEditor Boolean
+    | ShowMemoryEditor Boolean
 
 component :: H.Component HH.HTML Query Input Message Aff
 component = 
-    H.component 
+    H.lifecycleComponent 
         { initialState: initialize
         , render
         , eval
         , receiver: const Nothing
+        , initializer: Just $ H.action Initialize
+        , finalizer: Nothing
         }
     where
         initialize :: Input -> State 
@@ -62,7 +70,7 @@ component =
         render :: State -> H.ComponentHTML Query
         render state = 
             HH.div 
-                [ U.classes [ "pane-selection-bar-component" ]
+                [ U.classes [ componentClass ]
 
                 ] 
                 [ HH.div 
@@ -74,3 +82,19 @@ component =
         eval :: Query ~> H.ComponentDSL State Query Message Aff
         eval q = case q of 
             NoneQuery next -> pure next
+            Initialize next -> do
+                case EUI.target componentClass of 
+                    Nothing -> pure unit 
+                    Just t -> H.subscribe $ H.eventSource (PSBE.onContext t) (Just <<< H.request <<< HandleContext)
+                pure next
+            HandleContext str reply -> do
+                H.liftEffect $ log $ "handling context menu request for " <> str
+                state <- H.get 
+                case str of 
+                    "textEditor" -> H.raise $ ShowTextEditor (not state.textEditor)
+                    "memoryEditor" -> H.raise $ ShowMemoryEditor (not state.textEditor)
+                    _ -> pure unit
+                pure (reply H.Listening)
+
+componentClass :: String 
+componentClass = "pane-selection-bar-component"
