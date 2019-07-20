@@ -28,6 +28,7 @@ import Data.Functor.Coproduct.Nested
 
 import TextEditor as TextEditor
 import MemoryEditor as MemoryEditor
+import PaneSelectionBar as PSB
 
 type State = Unit
 
@@ -43,8 +44,8 @@ type Message = MyMessage
 data MyMessage 
     = NoneMessage
 
-type Slot = Either2 Unit Unit
-type ChildQuery = Coproduct2 TextEditor.Query MemoryEditor.Query
+type Slot = Either3 Unit Unit Unit
+type ChildQuery = Coproduct3 TextEditor.Query MemoryEditor.Query PSB.Query
 
 component :: H.Component HH.HTML Query Input Message Aff
 component = 
@@ -65,6 +66,7 @@ component =
                 ]
                 [ HH.slot' textSlot unit TextEditor.component "" (const Nothing)
                 , HH.slot' memorySlot unit MemoryEditor.component Nothing (const Nothing)
+                , HH.slot' psbSlot unit PSB.component Nothing (const Nothing)
                 ]
         eval :: forall q. Query ~> H.ParentDSL State Query ChildQuery Slot Message q
         eval q = case q of 
@@ -75,3 +77,6 @@ textSlot = CP.cp1
 
 memorySlot :: CP.ChildPath MemoryEditor.Query ChildQuery Unit Slot
 memorySlot = CP.cp2
+
+psbSlot :: CP.ChildPath PSB.Query ChildQuery Unit Slot
+psbSlot = CP.cp3

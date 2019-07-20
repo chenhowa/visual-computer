@@ -9,6 +9,7 @@ module MemoryEditor
     , Datum
     ) where
 
+import MemoryEditor.Mode as Mode
 import Prelude
 
 import Data.Array as Array
@@ -29,6 +30,7 @@ import WhatUtils as U
 type State =
     { data :: Array Datum
     , refreshCount :: Int 
+    , mode :: Mode.Mode
     }
 
 type Datum = Int
@@ -39,6 +41,7 @@ type Query = MyQuery
 
 data MyQuery a 
     = RowDataUpdate Int String a
+    | ModeChange Mode.Mode a
 
 type Message = MyMessage
 
@@ -58,8 +61,9 @@ component =
         initialize i = case i of 
             Just state -> state
             Nothing -> 
-                { data: [ 5, 6, 7]
+                { data: [ 5, 6, 17]
                 , refreshCount: 0
+                , mode: Mode.Decimal
                 }                
 
         render :: State -> H.ComponentHTML Query
@@ -73,7 +77,29 @@ component =
                     )
                 ]
             where 
-                header = [ HH.div [] [] ]
+                header = 
+                    [ HH.div
+                        [ U.classes ["met-row"] ]
+                        [ HH.div
+                            [ U.classes ["met-cell", "met-cell-memory-number-header"] ]
+                            [ HH.text "Address" ]
+                        , HH.div
+                            [ U.classes ["met-cell", "met-cell-memory-data-header"] ]
+                            [ HH.text "Value" ]
+                        , HH.div
+                            [ U.classes ["met-options"] ]
+                            [ HH.select 
+                                [ HE.onValueChange $ handleModeChange unit
+
+                                ]
+                                [ HH.option_ [ HH.text "Decimal" ]
+                                , HH.option_ [ HH.text "Binary" ]
+                                , HH.option_ [ HH.text "Hexadecimal" ]
+                                ]
+
+                            ]
+                        ] 
+                    ]
                 rows = 
                     let 
                         memoryData = state.data
@@ -91,14 +117,14 @@ component =
                             [ U.classes ["met-cell", "met-cell-memory-data"] ]
                             [ HH.input 
                                 [ U.classes ["met-input"]
-                                , HP.value $ (String.fromCodePointArray $ Array.concat $ Array.replicate state.refreshCount $ String.toCodePointArray "\r") <> (show $ Tuple.snd tup)
-                                , HE.onValueChange $ handleInput (Tuple.fst tup) unit
+                                , HP.value $ (String.fromCodePointArray $ 
+                                    Array.concat $ Array.replicate state.refreshCount $ 
+                                    String.toCodePointArray "\r") <> (Mode.intToString state.mode $ Tuple.snd tup)
+                                , HE.onValueChange $ handleInputChange (Tuple.fst tup) unit
                                 , HH.attr (HH.AttrName "refreshCount") (show state.refreshCount)
                                 ]
                             ]
                         ]
-                handleInput :: forall a. Int -> a -> String -> Maybe (Query a)
-                handleInput i a s = Just $ RowDataUpdate i s a
         eval :: Query ~> H.ComponentDSL State Query Message Aff
         eval q = case q of 
             RowDataUpdate row datum next -> do
@@ -107,6 +133,23 @@ component =
                 H.put newState
                 H.liftEffect $ log (show newState)
                 pure next
+            ModeChange mode next -> do
+                H.liftEffect $ log "mode changed!"
+                state <- H.get
+                H.put state { mode = mode }
+                pure next
+
+handleInputChange :: forall a. Int -> a -> String -> Maybe (Query a)
+handleInputChange i a s = Just $ RowDataUpdate i s a
+
+handleModeChange :: forall a. a -> String -> Maybe (Query a)
+handleModeChange a s = 
+    let mode = case s of 
+            "Decimal" -> Mode.Decimal
+            "Binary" -> Mode.Binary 
+            "Hexadecimal" -> Mode.Hexadecimal
+            _ -> Mode.Decimal
+    in Just $ ModeChange mode a
 
 rowDataUpdateState :: State -> Int -> String -> State
 rowDataUpdateState state index datum = 
@@ -119,3 +162,4 @@ rowDataUpdateState state index datum =
                     state { refreshCount = state.refreshCount + 1}
                 Just x ->
                     state { data = x }
+

@@ -42,3 +42,18 @@
 .met-input {
     border-style: none;
 }
+
+.met-cell-header {
+    font-weight: 500;
+}
+
+.met-cell-memory-number-header {
+    @extend .met-cell-memory-number;
+    @extend .met-cell-header;
+}
+
+
+.met-cell-memory-data-header {
+    @extend .met-cell-memory-data;
+    @extend .met-cell-header;
+}
