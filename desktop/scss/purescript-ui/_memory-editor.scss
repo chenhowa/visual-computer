@@ -1,0 +1,44 @@
+
+
+@import "../../bootstrap/scss/bootstrap";
+
+.memory-editor-component {
+    @extend .row;
+}
+
+.memory-editor-table {
+    @extend .col-md-12, .col-sm-12;
+    border-bottom-style: solid;
+    border-color: lightgrey;
+    border-width: thin;
+}
+
+.met-row {
+    @extend .row;
+    border-top-style: solid;
+    border-left-style: solid;
+    border-right-style: solid;
+    border-color: lightgrey;
+    border-width: thin;
+}
+
+.met-cell {
+    //border-style: solid;
+    //border-color: lightgrey;
+    //border-style
+}
+
+.met-cell-memory-number {
+    @extend .col-md-3, .col-sm-3;
+    border-right-style: solid;
+    border-color: lightgrey;
+    border-width: thin;
+}
+
+.met-cell-memory-data {
+    @extend .col-md-9, .col-sm-9;
+}
+
+.met-input {
+    border-style: none;
+}

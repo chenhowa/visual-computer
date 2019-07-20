@@ -1,5 +1,6 @@
 
 @import "../bootstrap/scss/bootstrap";
+@import "./purescript-ui/memory-editor";
 
 $speed-setting-color: lightblue;
 
@@ -18,7 +19,7 @@ $speed-setting-color: lightblue;
 }
 
 .action-menu-component {
-    @extend .row
+    @extend .row;
 }
 
 .text-display-component {
