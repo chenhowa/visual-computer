@@ -53,7 +53,7 @@ component =
                 [ HH.div
                     [ classes ["app-header"] ]
                     [ HH.slot' menuSlot unit ActionMenu.component unit (const Nothing)]
-                , HH.slot' bodySlot unit AppBody.component unit (const Nothing)
+                , HH.slot' bodySlot unit AppBody.component Nothing (const Nothing)
                 ]
         eval :: forall q. Query ~> H.ParentDSL State Query ChildQuery Slot Void q
         eval q = case q of 

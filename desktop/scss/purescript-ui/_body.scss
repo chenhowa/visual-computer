@@ -1,0 +1,26 @@
+@import "../../bootstrap/scss/bootstrap";
+
+
+.app-body-component {
+
+}
+
+.app-body-tabs {
+    @extend .nav, .nav-tabs;
+}
+
+.app-body-tab-item {
+    @extend .nav-item;
+}
+
+.app-body-tab-item-link {
+    @extend .nav-link;
+}
+
+.app-body-tab-content {
+    @extend .tab-content;
+}
+
+.app-body-pane {
+    @extend .tab-pane;
+}

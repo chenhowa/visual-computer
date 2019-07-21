@@ -41,6 +41,7 @@ data MyQuery a
     = NoneQuery a
     | Initialize a
     | HandleContext String (H.SubscribeStatus -> a)
+    | HandleInput Input a
 
 type Message = MyMessage
 
@@ -54,7 +55,7 @@ component =
         { initialState: initialize
         , render
         , eval
-        , receiver: const Nothing
+        , receiver: HE.input HandleInput
         , initializer: Just $ H.action Initialize
         , finalizer: Nothing
         }
@@ -68,13 +69,13 @@ component =
                 }                
 
         render :: State -> H.ComponentHTML Query
-        render state = 
-            HH.div 
+        render state = do
+            HH.footer 
                 [ U.classes [ componentClass ]
 
                 ] 
                 [ HH.div 
-                    [ ]
+                    [ U.classes [ ] ]
                     [ HH.text "HI PSB"
                     ]
                 ]
@@ -83,6 +84,8 @@ component =
         eval q = case q of 
             NoneQuery next -> pure next
             Initialize next -> do
+                state <- H.get
+                let _ = PSBE.initMenu state.textEditor state.memoryEditor
                 case EUI.target componentClass of 
                     Nothing -> pure unit 
                     Just t -> H.subscribe $ H.eventSource (PSBE.onContext t) (Just <<< H.request <<< HandleContext)
@@ -95,6 +98,13 @@ component =
                     "memoryEditor" -> H.raise $ ShowMemoryEditor (not state.textEditor)
                     _ -> pure unit
                 pure (reply H.Listening)
+            HandleInput input next -> do
+                case input of
+                    Nothing -> pure unit 
+                    Just panes -> do 
+                        H.put panes
+                        pure unit
+                pure next
 
 componentClass :: String 
 componentClass = "pane-selection-bar-component"

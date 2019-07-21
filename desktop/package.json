@@ -11,6 +11,9 @@
   "author": "Howard Chen",
   "license": "ISC",
   "dependencies": {
+    "bootstrap": "^4.3.1",
+    "jquery": "^3.4.1",
+    "popper": "^1.0.1",
     "rxjs": "^6.5.2"
   },
   "devDependencies": {

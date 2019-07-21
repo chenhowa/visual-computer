@@ -1,3 +1,6 @@
+window.$ = window.jQuery = require('jquery');
+window.Bootstrap = require('bootstrap');
+
 const { app, BrowserWindow } = require('electron')
 
 require('electron-reload')(__dirname, {
