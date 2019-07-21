@@ -153,7 +153,7 @@ handleModeChange a s =
 
 rowDataUpdateState :: State -> Int -> String -> State
 rowDataUpdateState state index datum = 
-    case Int.fromString $ String.trim datum of 
+    case Int.fromStringAs (Mode.withRadix state.mode) $ String.trim datum of 
         Nothing ->
             state { refreshCount = state.refreshCount + 1}
         Just num -> 

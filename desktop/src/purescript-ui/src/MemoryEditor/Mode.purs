@@ -1,6 +1,7 @@
 module MemoryEditor.Mode 
     ( Mode(..)
     , intToString
+    , withRadix
     ) where 
 
 import Prelude
@@ -25,3 +26,9 @@ intToString m i = case m of
     Binary -> Int.toStringAs Int.binary i
     Hexadecimal -> Int.toStringAs Int.hexadecimal i
     Decimal -> show i
+
+withRadix :: Mode -> Int.Radix 
+withRadix mode = case mode of 
+    Binary -> Int.binary
+    Hexadecimal -> Int.hexadecimal 
+    Decimal -> Int.decimal
