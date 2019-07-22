@@ -45,6 +45,7 @@ type MyState =
 data Active
     = Text
     | Memory
+    | None
 
 derive instance eqActive :: Eq Active
 
@@ -79,7 +80,7 @@ component =
             Just s -> s 
             Nothing -> 
                 { showTextEditor: true
-                , showMemoryEditor: false
+                , showMemoryEditor: true
                 , active: Text
                 }
 
@@ -95,23 +96,16 @@ component =
                     ]
                     [ HH.ul 
                         [ U.classes ["app-body-tabs"] ]
-                        [ tab programTitle Text state.active
-                        , tab memoryTitle Memory state.active
+                        [ tab programTitle Text state.active state.showTextEditor 
+                        , tab memoryTitle Memory state.active state.showMemoryEditor
                         ]
                     , HH.div 
                         [ U.classes ["app-body-tab-content"] ]
-                        [ pane Text state.active [ HH.slot' textSlot unit TextEditor.component "" (const Nothing) ]
-                        , pane Memory state.active [ HH.slot' memorySlot unit MemoryEditor.component Nothing (const Nothing) ]
+                        [ textEditPane state.active state.showTextEditor
+                        , memoryEditPane state.active state.showMemoryEditor
                         , HH.slot' psbSlot unit PSB.component (Just psbInput) (HE.input HandlePSB)
                         ]
                     ]
-
-            where 
-                pane c current children = 
-                    HH.div 
-                        [ U.classes $ ["app-body-pane"] <> if c == current then ["active", "in"] else []
-                        ]
-                        children
         eval :: Query ~> H.ParentDSL State Query ChildQuery Slot Message Aff
         eval q = case q of 
             NoneQuery next -> pure next
@@ -119,10 +113,10 @@ component =
                 state <- H.get
                 case mess of 
                     PSB.ShowTextEditor b -> do
-                        H.put $ state { showTextEditor = b } 
+                        H.put $ activeIfShownState state { showTextEditor = b } 
                         pure unit  
                     PSB.ShowMemoryEditor b -> do
-                        H.put $ state { showMemoryEditor = b }
+                        H.put $ activeIfShownState state { showMemoryEditor = b }
                         pure unit
                 pure next
             TabClick active next -> do 
@@ -141,15 +135,59 @@ memorySlot = CP.cp2
 psbSlot :: CP.ChildPath PSB.Query ChildQuery Unit Slot
 psbSlot = CP.cp3
 
-tab :: String -> Active -> Active -> H.ParentHTML Query ChildQuery Slot Aff
-tab str c current = 
+tab :: String -> Active -> Active -> Boolean -> H.ParentHTML Query ChildQuery Slot Aff
+tab str c current doShow = 
     HH.li 
         [ U.classes [ "app-body-tab-item"]
         , HE.onClick $ HE.input_ (TabClick $ c)
         ]
         [ HH.a 
-            [ U.classes $ ["app-body-tab-item-link"] <> if c == current then ["active", "in" ] else []
+            [ U.classes $ ["app-body-tab-item-link"] <> active <> show
             , HP.href "#"
             ]
             [ HH.text str ]
         ]
+    where 
+        active = if c == current then ["active", "in" ] else []
+        show = if doShow then [] else [ "hidden" ]
+
+textEditPane :: Active -> Boolean -> H.ParentHTML Query ChildQuery Slot Aff
+textEditPane actual doShow = 
+    pane Text actual [ HH.slot' textSlot unit TextEditor.component "" (const Nothing) ] doShow
+    where 
+        pane c current children s = 
+            HH.div 
+                [ U.classes $ ["app-body-pane"] <> active <> show
+                ]
+                children
+            where 
+                active = if c == current && s then ["active", "in"] else []
+                show = if s then ["hidden"] else []
+
+memoryEditPane :: Active -> Boolean -> H.ParentHTML Query ChildQuery Slot Aff
+memoryEditPane actual doShow = 
+    pane Memory actual [ HH.slot' memorySlot unit MemoryEditor.component Nothing (const Nothing) ] doShow
+    where 
+        pane c current children s = 
+            HH.div 
+                [ U.classes $ ["app-body-pane"] <> active <> show
+                ]
+                children
+            where
+                active = if c == current && s then ["active", "in"] else []
+                show = if s then ["hidden"] else []
+
+activeIfShownState :: State -> State 
+activeIfShownState state = 
+    case state.active of 
+        Text -> 
+            if not state.showTextEditor then activeIfShownState state { active = Memory } 
+            else state 
+        Memory -> if not state.showMemoryEditor then activeIfShownState state { active = None } else state 
+        None -> 
+            if state.showTextEditor 
+            then state { active = Text } 
+            else 
+                if state.showMemoryEditor
+                then state { active = Memory }
+                else state

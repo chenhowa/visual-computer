@@ -95,7 +95,7 @@ component =
                 state <- H.get 
                 case str of 
                     "textEditor" -> H.raise $ ShowTextEditor (not state.textEditor)
-                    "memoryEditor" -> H.raise $ ShowMemoryEditor (not state.textEditor)
+                    "memoryEditor" -> H.raise $ ShowMemoryEditor (not state.memoryEditor)
                     _ -> pure unit
                 pure (reply H.Listening)
             HandleInput input next -> do
