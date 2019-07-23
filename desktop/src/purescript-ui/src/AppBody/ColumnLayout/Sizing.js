@@ -6,9 +6,10 @@ window.$ = require('jquery-ui')*/
 
 
 exports.setResizable = function() {
-    /*setTimeout(function() {
-        $( "#two" ).resizable();
-    }, 2000)*/
+    setTimeout(function() {
+        $( ".cl-column" ).resizable();
+    }, 100)
+    
     
 
     /*Split(["#one", "#two"], {

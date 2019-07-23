@@ -11,7 +11,9 @@
 
 .cl-column {
     //@extend .col-6;
-    resize: both;
+    border: solid;
+    border-width: 1px;
+    border-color: lightgrey;
 }
 
 /*
