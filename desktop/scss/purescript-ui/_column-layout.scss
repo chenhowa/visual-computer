@@ -1,0 +1,35 @@
+@import "../../bootstrap/scss/bootstrap";
+
+
+.column-layout-component {
+    //@extend .row;
+    //display: flex;
+    //flex-direction: row;
+    //float: left;
+
+}
+
+.cl-column {
+    //@extend .col-6;
+    resize: both;
+}
+
+/*
+.gutter {
+    background-color: #eee;
+
+    background-repeat: no-repeat;
+    background-position: 50%;
+    float: left;
+
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('grips/vertical.png');
+    cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('grips/horizontal.png');
+    cursor: row-resize;
+}*/

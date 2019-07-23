@@ -1,0 +1,22 @@
+@import "../../bootstrap/scss/bootstrap";
+
+
+.tl-body-tabs {
+    @extend .nav, .nav-tabs;
+}
+
+.tl-body-tab-item {
+    @extend .nav-item;
+}
+
+.tl-body-tab-item-link {
+    @extend .nav-link;
+}
+
+.tl-body-tab-content {
+    @extend .tab-content;
+}
+
+.tl-body-pane {
+    @extend .tab-pane;
+}

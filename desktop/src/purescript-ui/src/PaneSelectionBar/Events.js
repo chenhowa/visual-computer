@@ -7,8 +7,10 @@ exports.initializeMenu = function(showTextEditor, showMemoryEditor) {
     exports.menuItemOptions.push({
         label: 'Layouts',
         submenu: [
-            {label: "layout 1"},
-            {label: 'layout 2'}
+            { label: "Tab"
+            },
+            { label: "Column"
+            }
         ]
     })
     exports.menuItemOptions.push({
@@ -31,6 +33,16 @@ exports.initializeMenu = function(showTextEditor, showMemoryEditor) {
 
 
 exports.onContextImpl = function(node, fn) {
+    exports.menuItemOptions[0].submenu[0].click = function(item, window, event) {
+        console.log("CLICKED TAB")
+        fn("tabLayout")()
+    }
+
+    exports.menuItemOptions[0].submenu[1].click = function(item, window, event) {
+        console.log("CLICKED COLUMN")
+        fn("columnLayout")()
+    }
+
     exports.menuItemOptions[1].click = function(item, window, event) { 
         console.log("CLICKED PROGRAM")
         fn("textEditor")()

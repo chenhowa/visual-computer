@@ -95,15 +95,15 @@ component =
                 memoryTitle = "Memory"
             in 
                 HH.div
-                    [ U.classes ["app-tab-layout-component" ]
+                    [ U.classes ["tab-layout-component" ]
                     ]
                     [ HH.ul 
-                        [ U.classes ["app-body-tabs"] ]
+                        [ U.classes ["tl-body-tabs"] ]
                         [ tab programTitle Text state.active state.showTextEditor 
                         , tab memoryTitle Memory state.active state.showMemoryEditor
                         ]
                     , HH.div 
-                        [ U.classes ["app-body-tab-content"] ]
+                        [ U.classes ["tl-body-tab-content"] ]
                         [ textEditPane state.active state.showTextEditor
                         , memoryEditPane state.active state.showMemoryEditor
                         ]
@@ -138,11 +138,11 @@ memorySlot = CP.cp2
 tab :: String -> Active -> Active -> Boolean -> H.ParentHTML Query ChildQuery Slot Aff
 tab str c current doShow = 
     HH.li 
-        [ U.classes [ "app-body-tab-item"]
+        [ U.classes [ "tl-body-tab-item"]
         , HE.onClick $ HE.input_ (TabClick $ c)
         ]
         [ HH.a 
-            [ U.classes $ ["app-body-tab-item-link"] <> active <> show
+            [ U.classes $ ["tl-body-tab-item-link"] <> active <> show
             , HP.href "#"
             ]
             [ HH.text str ]
@@ -157,12 +157,12 @@ textEditPane actual doShow =
     where 
         pane c current children s = 
             HH.div 
-                [ U.classes $ ["app-body-pane"] <> active <> show
+                [ U.classes $ ["tl-body-pane"] <> active <> show
                 ]
                 children
             where 
                 active = if c == current && s then ["active", "in"] else []
-                show = if s then ["hidden"] else []
+                show = U.hiddenClasses s
 
 memoryEditPane :: Active -> Boolean -> H.ParentHTML Query ChildQuery Slot Aff
 memoryEditPane actual doShow = 
@@ -170,12 +170,12 @@ memoryEditPane actual doShow =
     where 
         pane c current children s = 
             HH.div 
-                [ U.classes $ ["app-body-pane"] <> active <> show
+                [ U.classes $ ["tl-body-pane"] <> active <> show
                 ]
                 children
             where
                 active = if c == current && s then ["active", "in"] else []
-                show = if s then ["hidden"] else []
+                show = U.hiddenClasses s
 
 activeIfShownState :: State -> State 
 activeIfShownState state = 

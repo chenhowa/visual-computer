@@ -178,3 +178,6 @@ charAt index str =
     in case uncons after of 
             Nothing -> Nothing
             Just { head, tail } -> Just $ fromCodePointArray [head]
+
+hiddenClasses :: Boolean -> Array String 
+hiddenClasses show = if show then [] else ["hidden"]

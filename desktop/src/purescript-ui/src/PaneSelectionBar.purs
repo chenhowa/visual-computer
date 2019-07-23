@@ -48,6 +48,8 @@ type Message = MyMessage
 data MyMessage 
     = ShowTextEditor Boolean
     | ShowMemoryEditor Boolean
+    | UseTabLayout
+    | UseColumnLayout
 
 component :: H.Component HH.HTML Query Input Message Aff
 component = 
@@ -96,6 +98,8 @@ component =
                 case str of 
                     "textEditor" -> H.raise $ ShowTextEditor (not state.textEditor)
                     "memoryEditor" -> H.raise $ ShowMemoryEditor (not state.memoryEditor)
+                    "tabLayout" -> H.raise $ UseTabLayout
+                    "columnLayout" -> H.raise $ UseColumnLayout
                     _ -> pure unit
                 pure (reply H.Listening)
             HandleInput input next -> do
