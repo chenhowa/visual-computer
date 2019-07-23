@@ -7,7 +7,6 @@ module AppBody
     , MyQuery(..)
     , MyMessage(..)
     , MyState(..)
-    , Active(..)
     ) where 
 
 import Data.Either.Nested
@@ -28,9 +27,8 @@ import Web.UIEvent.MouseEvent as ME
 import Web.Event.Event as E
 
 
-import MemoryEditor as MemoryEditor
 import PaneSelectionBar as PSB
-import TextEditor as TextEditor
+import AppBody.TabLayout as TabLayout
 import WhatUtils as U
 import Events.UI as UI
 
@@ -39,15 +37,7 @@ type State = MyState
 type MyState =
     { showTextEditor :: Boolean
     , showMemoryEditor :: Boolean
-    , active :: Active
     }
-
-data Active
-    = Text
-    | Memory
-    | None
-
-derive instance eqActive :: Eq Active
 
 type Input = Maybe State
 
@@ -56,15 +46,14 @@ type Query = MyQuery
 data MyQuery a 
     = NoneQuery a
     | HandlePSB PSB.Message a
-    | TabClick Active a
 
 type Message = MyMessage
 
 data MyMessage 
     = NoneMessage
 
-type Slot = Either3 Unit Unit Unit
-type ChildQuery = Coproduct3 TextEditor.Query MemoryEditor.Query PSB.Query
+type Slot = Either2 Unit Unit
+type ChildQuery = Coproduct2 TabLayout.Query PSB.Query
 
 component :: H.Component HH.HTML Query Input Message Aff
 component = 
@@ -81,30 +70,20 @@ component =
             Nothing -> 
                 { showTextEditor: true
                 , showMemoryEditor: true
-                , active: Text
                 }
 
         render :: State -> H.ParentHTML Query ChildQuery Slot Aff
         render state = 
             let psbInput = 
                     { textEditor: state.showTextEditor, memoryEditor: state.showMemoryEditor }
-                programTitle = "Program"
-                memoryTitle = "Memory"
+                tablayoutInput = 
+                    { showTextEditor: state.showTextEditor, showMemoryEditor: state.showMemoryEditor }
             in 
                 HH.div
                     [ U.classes ["app-body-component" ]
                     ]
-                    [ HH.ul 
-                        [ U.classes ["app-body-tabs"] ]
-                        [ tab programTitle Text state.active state.showTextEditor 
-                        , tab memoryTitle Memory state.active state.showMemoryEditor
-                        ]
-                    , HH.div 
-                        [ U.classes ["app-body-tab-content"] ]
-                        [ textEditPane state.active state.showTextEditor
-                        , memoryEditPane state.active state.showMemoryEditor
-                        , HH.slot' psbSlot unit PSB.component (Just psbInput) (HE.input HandlePSB)
-                        ]
+                    [ HH.slot' tabLayoutSlot unit TabLayout.component (Just tablayoutInput) (const Nothing)
+                    , HH.slot' psbSlot unit PSB.component (Just psbInput) (HE.input HandlePSB)
                     ]
         eval :: Query ~> H.ParentDSL State Query ChildQuery Slot Message Aff
         eval q = case q of 
@@ -113,81 +92,17 @@ component =
                 state <- H.get
                 case mess of 
                     PSB.ShowTextEditor b -> do
-                        H.put $ activeIfShownState state { showTextEditor = b } 
+                        H.liftEffect $ log "showTextEditor"
+                        H.put $ state { showTextEditor = b } 
                         pure unit  
                     PSB.ShowMemoryEditor b -> do
-                        H.put $ activeIfShownState state { showMemoryEditor = b }
+                        H.liftEffect $ log "showMemoryEditor"
+                        H.put $ state { showMemoryEditor = b }
                         pure unit
                 pure next
-            TabClick active next -> do 
-                state <- H.get 
-                H.put state 
-                    { active = active
-                    }
-                pure next
 
-textSlot :: CP.ChildPath TextEditor.Query ChildQuery Unit Slot
-textSlot = CP.cp1
-
-memorySlot :: CP.ChildPath MemoryEditor.Query ChildQuery Unit Slot
-memorySlot = CP.cp2
+tabLayoutSlot :: CP.ChildPath TabLayout.Query ChildQuery Unit Slot
+tabLayoutSlot = CP.cp1
 
 psbSlot :: CP.ChildPath PSB.Query ChildQuery Unit Slot
-psbSlot = CP.cp3
-
-tab :: String -> Active -> Active -> Boolean -> H.ParentHTML Query ChildQuery Slot Aff
-tab str c current doShow = 
-    HH.li 
-        [ U.classes [ "app-body-tab-item"]
-        , HE.onClick $ HE.input_ (TabClick $ c)
-        ]
-        [ HH.a 
-            [ U.classes $ ["app-body-tab-item-link"] <> active <> show
-            , HP.href "#"
-            ]
-            [ HH.text str ]
-        ]
-    where 
-        active = if c == current then ["active", "in" ] else []
-        show = if doShow then [] else [ "hidden" ]
-
-textEditPane :: Active -> Boolean -> H.ParentHTML Query ChildQuery Slot Aff
-textEditPane actual doShow = 
-    pane Text actual [ HH.slot' textSlot unit TextEditor.component "" (const Nothing) ] doShow
-    where 
-        pane c current children s = 
-            HH.div 
-                [ U.classes $ ["app-body-pane"] <> active <> show
-                ]
-                children
-            where 
-                active = if c == current && s then ["active", "in"] else []
-                show = if s then ["hidden"] else []
-
-memoryEditPane :: Active -> Boolean -> H.ParentHTML Query ChildQuery Slot Aff
-memoryEditPane actual doShow = 
-    pane Memory actual [ HH.slot' memorySlot unit MemoryEditor.component Nothing (const Nothing) ] doShow
-    where 
-        pane c current children s = 
-            HH.div 
-                [ U.classes $ ["app-body-pane"] <> active <> show
-                ]
-                children
-            where
-                active = if c == current && s then ["active", "in"] else []
-                show = if s then ["hidden"] else []
-
-activeIfShownState :: State -> State 
-activeIfShownState state = 
-    case state.active of 
-        Text -> 
-            if not state.showTextEditor then activeIfShownState state { active = Memory } 
-            else state 
-        Memory -> if not state.showMemoryEditor then activeIfShownState state { active = None } else state 
-        None -> 
-            if state.showTextEditor 
-            then state { active = Text } 
-            else 
-                if state.showMemoryEditor
-                then state { active = Memory }
-                else state
+psbSlot = CP.cp2
