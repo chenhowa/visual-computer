@@ -20,7 +20,7 @@
     "split.js": "^1.5.11"
   },
   "devDependencies": {
-    "electron": "^5.0.2",
+    "electron": "^7.2.4",
     "electron-reload": "^1.4.0"
   }
 }
